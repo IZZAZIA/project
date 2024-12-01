@@ -1,0 +1,639 @@
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class CreateCredentialsFile {
+    public static void main(String[] args) {
+        createCredentialsFile();
+    }
+
+    public static void createCredentialsFile() {
+        String fileName = "credentials.txt"; // Name of the file
+        String content = "Wajiya,123\nFatima,123\nIzza,123\nHajra,123"; // Content to write
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write(content);
+            System.out.println("Credentials file created successfully.");
+        } catch (IOException e) {
+            System.out.println("An error occurred while creating the file: " + e.getMessage());
+        }
+    }
+}
+
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class Login {
+    private Map<String, String> credentials;
+
+    public Login() {
+        credentials = new HashMap<>();
+        loadCredentials();
+    }
+
+    private void loadCredentials() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("credentials.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2) {
+                    credentials.put(parts[0].trim(), parts[1].trim());
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading credentials: " + e.getMessage());
+        }
+    }
+
+    public boolean authenticate(String username, String password) {
+        return credentials.containsKey(username) && credentials.get(username).equals(password);
+    }
+
+    public void login() {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.print("Enter username (or type 'exit' to quit): ");
+            String username = scanner.nextLine();
+
+            if (username.equalsIgnoreCase("exit")) {
+                System.out.println("Exiting login process.");
+                System.exit(0); // Exit the application
+            }
+
+            System.out.print("Enter password: ");
+            String password = scanner.nextLine();
+
+            if (authenticate(username, password)) {
+                System.out.println("Login successful!");
+                return; // Exit the login method on successful login
+            } else {
+                System.out.println("Invalid credentials. Please try again.");
+            }
+        }
+    }
+}
+
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class Employee {
+    private int id;
+    private String name;
+    private String gender;
+    private String email;
+    private String dob;
+    private double allowance;
+    
+    
+
+    public Employee(int id, String name, String gender, String email, String dob) throws Exception {
+        if (id <= 0) throw new Exception("ID cannot be zero or negative.");
+        if (name == null || name.isEmpty()) throw new Exception("Name cannot be empty.");
+        if (gender == null || gender.isEmpty()) throw new Exception("Gender cannot be empty.");
+        if (email == null || email.isEmpty()) throw new Exception("Email cannot be empty.");
+        if (dob == null || dob.isEmpty()) throw new Exception("Date of birth cannot be empty.");
+
+        this.id = id;
+        this.name = name;
+        this.gender = gender;
+        this.email = email;
+        this.dob = dob;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getGender() { return gender; }
+    public String getEmail() { return email; }
+    public String getDob() { return dob; }
+
+    public void saveToFile() throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("employees.txt", true))) {
+            writer.write(id + "," + name + "," + gender + "," + email + "," + dob);
+            writer.newLine();
+        }
+    }
+
+    public static List<Employee> loadFromFile() throws IOException {
+        List<Employee> employees = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("employees.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                Employee emp = new Employee(
+                    Integer.parseInt(data[0]), data[1], data[2], data[3], data[4]
+                );
+                employees.add(emp);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(Employee.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return employees;
+    }
+
+    // Polymorphic method for calculating salary
+    public double calculateSalary(double baseSalary, double deductions, double bonuses) {
+        return baseSalary - deductions + bonuses; // Default calculation
+    }
+
+    double calculateAllowances(double transportAllowance, double housingAllowance, double mealAllowance, double medicalAllowance, double otherAllowances) {
+               return transportAllowance + housingAllowance + mealAllowance + medicalAllowance + otherAllowances;
+        
+    }
+
+ public void setSalary(double newSalary) {
+    if (newSalary < 0) {
+        throw new IllegalArgumentException("Salary cannot be negative.");
+    }
+ }
+    public void setAllowance(double newAllowance) {
+    if (newAllowance < 0) {
+        throw new IllegalArgumentException("Allowance cannot be negative.");
+    }
+    this.allowance = newAllowance; // Assuming allowance is a field in Employee class
+}
+ }
+
+
+ public class FullTimeEmployee extends Employee {
+    private String department; // Added department attribute
+
+    public FullTimeEmployee(int id, String name, String gender, String email, String dob, String department) throws Exception {
+        super(id, name, gender, email, dob);
+        if (department == null || department.trim().isEmpty()) {
+            throw new Exception("Department cannot be empty.");
+        }
+        this.department = department; // Initialize department
+    }
+
+    public String getDepartment() { 
+        return department; 
+    }
+
+    @Override
+    public double calculateSalary(double baseSalary, double deductions, double bonuses) {
+        // Full-time employees might get a different calculation
+        return super.calculateSalary(baseSalary, deductions, bonuses) + 500; // Adding a bonus for full-time employees
+    }
+ }
+ 
+public class PartTimeEmployee extends FullTimeEmployee {
+    private int hoursWorked; // New attribute to track hours worked
+
+    public PartTimeEmployee(int id, String name, String gender, String email, String dob, String department, int hoursWorked) throws Exception {
+        super(id, name, gender, email, dob, department);
+        if (hoursWorked < 0) {
+            throw new Exception("Hours worked cannot be negative.");
+        }
+        this.hoursWorked = hoursWorked; // Initialize hours worked
+    }
+
+    public int getHoursWorked() { 
+        return hoursWorked; 
+    }
+
+    @Override
+    public double calculateSalary(double baseSalary, double deductions, double bonuses) {
+        // Part-time employees have standard salary calculation
+        return super.calculateSalary(baseSalary, deductions, bonuses); // No extra bonus
+    }
+}
+
+import java.io.IOException;
+import java.util.*;
+
+public class EmployeeManagement {
+     private List<Employee> employees;
+
+    public EmployeeManagement() {
+        employees = new ArrayList<>();
+    }
+
+    // Add an employee
+    public void addEmployee(Employee emp) {
+        try {
+            employees.add(emp);
+            emp.saveToFile(); // Save to file
+            System.out.println("Employee added successfully.");
+        } catch (IOException e) {
+            System.out.println("Error saving employee: " + e.getMessage());
+        }
+    }
+
+    // View all employees
+    public void viewEmployees() {
+        try {
+            employees = Employee.loadFromFile();
+            for (Employee emp : employees) {
+                System.out.println("ID: " + emp.getId() + ", Name: " + emp.getName() + ", Gender: " + emp.getGender() + ", Email: " + emp.getEmail() + ", DOB: " + emp.getDob());
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading employees: " + e.getMessage());
+        }
+    }
+
+    // Update employee
+    public void updateEmployee(int id, String newEmail) {
+        boolean found = false;
+        for (int i = 0; i < employees.size(); i++) {
+            Employee emp = employees.get(i);
+            if (emp.getId() == id) {
+                try {
+                    Employee updatedEmployee = new Employee(emp.getId(), emp.getName(), emp.getGender(), newEmail, emp.getDob());
+                    employees.set(i, updatedEmployee);
+                    System.out.println("Employee updated successfully.");
+                    found = true;
+                    break;
+                } catch (Exception e) {
+                    System.out.println("Error updating employee: " + e.getMessage());
+                }
+            }
+        }
+        if (!found) {
+            System.out.println("Employee not found.");
+        }
+    }
+
+    // Delete employee
+    public void deleteEmployee(int id) {
+        Iterator<Employee> iterator = employees.iterator();
+        boolean found = false;
+        while (iterator.hasNext()) {
+            Employee emp = iterator.next();
+            if (emp.getId() == id) {
+                iterator.remove();
+                System.out.println("Employee removed successfully.");
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            System.out.println("Employee not found.");
+        }
+    }
+
+    Object loadFromFile() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+
+}
+
+public class Salary {
+    private double baseSalary;
+    private double deductions;
+    private double bonuses;
+
+    public Salary(double baseSalary, double deductions, double bonuses) throws Exception {
+        if (baseSalary <= 0) throw new Exception("Base salary must be positive.");
+        if (deductions < 0) throw new Exception("Deductions cannot be negative.");
+        if (bonuses < 0) throw new Exception("Bonuses cannot be negative.");
+
+        this.baseSalary = baseSalary;
+        this.deductions = deductions;
+        this.bonuses = bonuses;
+    }
+
+    public double calculateNetSalary() {
+        return baseSalary - deductions + bonuses;
+    }
+
+}
+
+public class Allowance {
+     private double transportAllowance;
+    private double housingAllowance;
+    private double mealAllowance;
+    private double medicalAllowance;
+    private double otherAllowances;
+
+    public Allowance(double transportAllowance, double housingAllowance, double mealAllowance, double medicalAllowance, double otherAllowances) throws Exception {
+        if (transportAllowance < 0) throw new Exception("Transport Allowance cannot be negative.");
+        if (housingAllowance < 0) throw new Exception("Housing Allowance cannot be negative.");
+        if (mealAllowance < 0) throw new Exception("Meal Allowance cannot be negative.");
+        if (medicalAllowance < 0) throw new Exception("Medical Allowance cannot be negative.");
+        if (otherAllowances < 0) throw new Exception("Other Allowances cannot be negative.");
+        
+        this.transportAllowance = transportAllowance;
+        this.housingAllowance = housingAllowance;
+        this.mealAllowance = mealAllowance;
+        this.medicalAllowance = medicalAllowance;
+        this.otherAllowances = otherAllowances;
+    }
+
+    public double calculateTotalAllowances() {
+        return transportAllowance + housingAllowance + mealAllowance + medicalAllowance + otherAllowances;
+    }
+}
+
+public class PayrollManager {
+    
+    public void calculateSalary(Employee emp, Salary salary) {
+        System.out.println("Calculating salary for: " + emp.getName());
+        double netSalary = salary.calculateNetSalary();
+        System.out.println("Net Salary: " + netSalary);
+    }
+
+    public void calculateAllowances(Employee emp, Allowance allowance) {
+        System.out.println("Calculating allowances for: " + emp.getName());
+        double totalAllowances = allowance.calculateTotalAllowances();
+        System.out.println("Total Allowances: " + totalAllowances);
+    }
+
+}
+
+import java.util.Scanner;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Login login = new Login();
+        EmployeeManagement empManager = new EmployeeManagement();
+        PayrollManager payrollManager = new PayrollManager();
+
+        System.out.println("Welcome to Payroll Management System!");
+
+        // Perform login
+        login.login(); // This handles login and limits attempts
+
+        while (true) {
+            System.out.println("\nMain Menu:");
+            System.out.println("1. Employee Management");
+            System.out.println("2. Payroll Management");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+
+            try {
+                switch (choice) {
+                    case 1 -> manageEmployeeData(empManager, scanner);
+                    case 2 -> managePayrollData(empManager, payrollManager, scanner);
+                    case 3 -> {
+                        System.out.println("Exiting Payroll Management System. Goodbye!");
+                        return; // Exit the program
+                    }
+                    default -> System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void manageEmployeeData(EmployeeManagement empManager, Scanner scanner) {
+        while (true) {
+            System.out.println("\nEmployee Management Menu:");
+            System.out.println("1. Add Full-Time Employee");
+            System.out.println("2. Add Part-Time Employee");
+            System.out.println("3. View Employees");
+            System.out.println("4. Update Employee");
+            System.out.println("5. Delete Employee");
+            System.out.println("6. Back to Main Menu");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+
+            try {
+                switch (choice) {
+                    case 1 -> {
+                        // Add Full-Time Employee
+                        System.out.print("Enter Employee ID: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+
+                        String name = getInput(scanner, "Name");
+                        String gender = getInput(scanner, "Gender");
+                        String email = getInput(scanner, "Email");
+                        String dob = getInput(scanner, "Date of Birth (DOB)");
+                        String department = getInput(scanner, "Department");
+
+                        FullTimeEmployee emp = new FullTimeEmployee(id, name, gender, email, dob, department);
+                        empManager.addEmployee(emp);
+                    }
+                    case 2 -> {
+                        // Add Part-Time Employee
+                        System.out.print("Enter Employee ID: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+
+                        String name = getInput(scanner, "Name");
+                        String gender = getInput(scanner, "Gender");
+                        String email = getInput(scanner, "Email");
+                        String dob = getInput(scanner, "Date of Birth (DOB)");
+                        String department = getInput(scanner, "Department");
+
+                        System.out.print("Enter Hours Worked: ");
+                        int hoursWorked = scanner.nextInt();
+
+                        PartTimeEmployee emp = new PartTimeEmployee(id, name, gender, email, dob, department, hoursWorked);
+                        empManager.addEmployee(emp);
+                    }
+                    case 3 -> empManager.viewEmployees();
+                    case 4 -> {
+                        // Update employee
+                        System.out.print("Enter Employee ID to update: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        String newEmail = getInput(scanner, "New Email");
+                        empManager.updateEmployee(id, newEmail);
+                    }
+                    case 5 -> {
+                        // Delete employee
+                        System.out.print("Enter Employee ID to delete: ");
+                        int id = scanner.nextInt();
+                        empManager.deleteEmployee(id);
+                    }
+                    case 6 -> {
+                        return; // Back to main menu
+                    }
+                    default -> System.out.println("Invalid choice.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void managePayrollData(EmployeeManagement empManager, PayrollManager payrollManager, Scanner scanner) {
+    while (true) {
+        System.out.println("\nPayroll Management Menu:");
+        System.out.println("1. Calculate Salary");
+        System.out.println("2. Calculate Allowances");
+        System.out.println("3. Update Salary");
+        System.out.println("4. Delete Salary");
+        System.out.println("5. Update Allowance");
+        System.out.println("6. Delete Allowance");
+        System.out.println("7. Back to Main Menu");
+        System.out.print("Choose an option: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        try {
+            switch (choice) {
+                case 1 -> {
+                    // Calculate Salary
+                    System.out.print("Enter Employee ID to calculate salary: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    List<Employee> employees = Employee.loadFromFile();
+                    Employee emp = employees.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
+
+                    if (emp != null) {
+                        double baseSalary = getDoubleInput(scanner, "Base Salary");
+                        double deductions = getDoubleInput(scanner, "Deductions");
+                        double bonuses = getDoubleInput(scanner, "Bonuses");
+
+                        double netSalary = emp.calculateSalary(baseSalary, deductions, bonuses);
+                        System.out.println("Net Salary for " + emp.getName() + ": " + netSalary);
+                    } else {
+                        System.out.println("Employee not found.");
+                    }
+                }
+                case 2 -> {
+                    // Calculate Allowances
+                    System.out.print("Enter Employee ID to calculate allowances: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    List<Employee> employees = Employee.loadFromFile();
+                    Employee emp = employees.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
+
+                    if (emp != null) {
+                        double transportAllowance = getDoubleInput(scanner, "Transport Allowance");
+                        double housingAllowance = getDoubleInput(scanner, "Housing Allowance");
+                        double mealAllowance = getDoubleInput(scanner, "Meal Allowance");
+                        double medicalAllowance = getDoubleInput(scanner, "Medical Allowance");
+                        double otherAllowances = getDoubleInput(scanner, "Other Allowances");
+
+                        double netAllowance = emp.calculateAllowances(transportAllowance, housingAllowance, mealAllowance, medicalAllowance, otherAllowances);
+                        System.out.println("Net Allowance for " + emp.getName() + ": " + netAllowance);
+                    } else {
+                        System.out.println("Employee not found.");
+                    }
+                }
+                case 3 -> {
+                    // Update Salary
+                    System.out.print("Enter Employee ID to update salary: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    List<Employee> employees = Employee.loadFromFile();
+                    Employee emp = employees.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
+
+                    if (emp != null) {
+                        double newSalary = getDoubleInput(scanner, "New Salary");
+                        emp.setSalary(newSalary);
+                        System.out.println("Salary updated for " + emp.getName());
+                        
+                    } else {
+                        System.out.println("Employee not found.");
+                    }
+                }
+                case 4 -> {
+                    // Delete Salary
+                    System.out.print("Enter Employee ID to delete salary: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    List<Employee> employees = Employee.loadFromFile();
+                    Employee emp = employees.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
+
+                    if (emp != null) {
+                        emp.setSalary(0);
+                        System.out.println("Salary deleted for " + emp.getName());
+                        
+                    } else {
+                        System.out.println("Employee not found.");
+                    }
+                }
+                case 5 -> {
+                    // Update Allowance
+                    System.out.print("Enter Employee ID to update allowance: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    List<Employee> employees = Employee.loadFromFile();
+                    Employee emp = employees.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
+
+                    if (emp != null) {
+                        double newAllowance = getDoubleInput(scanner, "New Allowance");
+                        emp.setAllowance(newAllowance);
+                        System.out.println("Allowance updated for " + emp.getName());
+                        
+                    } else {
+                        System.out.println("Employee not found.");
+                        }
+                case 6 -> {
+                    // Delete Allowance
+                    System.out.print("Enter Employee ID to delete allowance: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    List<Employee> employees = Employee.loadFromFile();
+                    Employee emp = employees.stream().filter(e -> e.getId() == id).findFirst().orElse(null);
+
+                    if (emp != null) {
+                        emp.setAllowance(0);
+                        System.out.println("Allowance deleted for " + emp.getName());
+                      
+                    } else {
+                        System.out.println("Employee not found.");
+                    }
+                }
+                case 7 -> {
+                    return; // Back to main menu
+                }
+                default -> System.out.println("Invalid choice.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
+    private static String getInput(Scanner scanner, String fieldName) {
+    String input;
+    while (true) {
+        System.out.print("Enter " + fieldName + ": ");
+        input = scanner.nextLine().trim(); // Trim whitespace from input
+        if (input.isEmpty()) {
+            System.out.println("Invalid input. " + fieldName + " can't be empty. Please enter it again.");
+        } else {
+            break; // Exit the loop if the input is valid
+        }
+    }
+        return input;
+    }
+
+    private static double getDoubleInput(Scanner scanner, String fieldName) {
+    double input = -1;
+    while (true) {
+        System.out.print("Enter " + fieldName + ": ");
+        String line = scanner.nextLine().trim(); // Read input as a string
+
+        // Check if the input is empty
+        if (line.isEmpty()) {
+            System.out.println("Invalid input. " + fieldName + " can't be empty. Please enter a valid value.");
+            continue; // Prompt for input again
+        }
+
+        try {
+            input = Double.parseDouble(line); // Try to parse the input to a double
+            if (input < 0) {
+                System.out.println("Invalid input. " + fieldName + " cannot be negative. Please enter a valid value.");
+            } else {
+                break; // Exit the loop if the input is valid
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a numeric value for " + fieldName + ".");
+        }
+    }
+    return input; // Return the valid input
+}
+}
